@@ -1,0 +1,125 @@
+/* 기본 사이드바 스타일 */
+.sidebar {
+    width: 250px;
+    background-color: #a9e2f3;
+    color: white;
+    height: 100vh;
+    transition: width 0.3s ease;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* 사이드바 닫혔을 때 */
+  .sidebar-closed {
+    width: 60px;
+  }
+  
+  /* 로고 중앙 정렬 */
+  .sidebar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+  
+  /* 클러스터 리스트 */
+  .cluster-list {
+    width: 100%;
+  }
+  
+  /* 클러스터 버튼 디자인 */
+  .sidebar-cluster {
+    cursor: pointer;
+    background-color: #a9e2f3;
+    font-weight: bold;
+    text-align: left;
+    color: black;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border: none;
+    transition: background 0.3s;
+  }
+  
+  .sidebar-cluster:hover {
+    background-color: #e6e6e6;
+  }
+  
+  /* 아이콘과 텍스트 정렬 */
+  .sidebar-cluster svg {
+    margin-right: 10px;
+  }
+  
+  .cluster-text {
+    flex-grow: 1;
+  }
+  
+  /* 선택된 클러스터 스타일 */
+  .sidebar-cluster.active {
+    background-color: #2c3e50 !important;
+    border: none !important;
+  }
+  
+/* 네임스페이스 리스트 (애니메이션) */
+.namespace-container {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background-color: #2c3e50;
+  }
+  
+.namespace-container.show {
+    max-height: 400px;
+}
+
+/* 네임스페이스 개별 아이템 */
+.namespace-item {
+    font-size: 14px;
+    padding: 8px 15px;
+    cursor: pointer;
+    text-align: left;
+    background-color: #1c2b38;
+    color: white;
+    border: none;
+    transition: background 0.3s;
+}
+
+.namespace-item:hover {
+    background-color: #1abc9c;
+}
+
+/* Clusters Overview 버튼 스타일 */
+.clusters-overview-btn {
+    width: 90%;
+    margin: 10px auto;
+    display: block;
+    font-weight: bold;
+    background-color: #2c3e50 !important;
+    border: none !important ;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+  
+.clusters-overview-btn:hover {
+    background-color: #2980b9 !important;
+}
+  
+/* 사이트 이름 스타일 */
+.site-name {
+    font-size: 20px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* 로고 & 사이트 이름을 포함하는 컨테이너 */
+.logo-container {
+    display: flex;
+    flex-direction: column; /* ✅ 로고와 사이트 이름을 세로 정렬 */
+    align-items: center;
+}

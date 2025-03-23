@@ -1,0 +1,50 @@
+.popup-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20%;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0); /* ✅ 기본 상태 (오른쪽에 표시) */
+}
+
+.popup-container.hidden {
+    transform: translateX(100%); /* ✅ 숨겨진 상태 (오른쪽으로 밀려남) */
+}
+
+.popup h3 {
+    margin-bottom: 15px;
+}
+
+.popup p {
+    margin: 5px 0;
+}
+
+/* ✅ 슬라이드 닫기 버튼 */
+.slide-close-btn {
+    position: absolute;
+    left: -30px; /* ✅ 팝업 바깥쪽에 배치 */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.slide-close-btn:hover {
+    background: #1a252f;
+}
