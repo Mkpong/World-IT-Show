@@ -6,6 +6,7 @@ import Topology2 from "../components/Topology2"
 import axios from 'axios';
 import ClusterTopology from "../components/ClusterTopology";
 import ClusterTopology2 from "../components/ClusterTopology2";
+import ClusterTopology3 from "../components/ClusterTopology3";
 import Header from "../components/Header";
 import GraphBottom from "../components/GraphBottom";
 import { Send } from "react-bootstrap-icons";
@@ -73,14 +74,14 @@ const Main = () => {
           if(!ns_seen.has(srcNamespace)){
             ns_seen.add(srcNamespace);
             combo.push({
-              id: srcNamespace,
+              id: srcNamespace+"c",
               label: srcNamespace,
             })
           }
           if(!ns_seen.has(dstNamespace)){
             ns_seen.add(dstNamespace);
             combo.push({
-              id: dstNamespace,
+              id: dstNamespace+"c",
               label: dstNamespace,
             })
           }
@@ -101,6 +102,7 @@ const Main = () => {
               name: srcName,
               kind: srcType,
               namespace: srcNamespace,
+              comboId: srcNamespace+"c",
               ...style
             });
           }
@@ -114,6 +116,7 @@ const Main = () => {
               name: dstName,
               kind: dstType,
               namespace: dstNamespace,
+              comboId: dstNamespace+"c",
               ...style
             });
           }
@@ -199,8 +202,7 @@ const Main = () => {
       return <ClusterTopology2 data={graphDataWithoutCombos} />;
     }
     if (!cluster && namespace) {
-      const { combos, ...graphDataWithoutCombos } = topologyData;
-      return <ClusterTopology2 data={graphDataWithoutCombos} />;
+      return <ClusterTopology3 data={topologyData} />;
     }
     if (!cluster && !namespace) {
       const { combos, ...graphDataWithoutCombos } = topologyData;
