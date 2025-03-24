@@ -113,6 +113,7 @@ const Main = () => {
   const handleSelectNamespaceChange = (selectedOptions) => {
     setSelectedNamespaces(selectedOptions || []);
   };
+  
 
 
   // 클러스터 정보 불러오는 블록
@@ -140,14 +141,19 @@ const Main = () => {
           return acc;
         }, {});
         setClusterNamespaces(formattedData);
-        console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching clusters:", error);
       });
 
-    axios.get("/api/logs")
+    const request_body = selectedNamespaces.map(({ clusterName, namespace }) => ({
+      clustername: clusterName,
+      namespace: namespace,
+    }));
+    console.log("log request body:", request_body)
+    axios.get("/api/logs") // axios.post("/api/logs" , request_body)
       .then((response) => {
+        console.log(response.data);
         setLogEntries(response.data);
         const combo = [];
         const ns_seen = new Set();
@@ -227,12 +233,12 @@ const Main = () => {
           combos: combo
         }
         setTopologyData(graphData)
-        console.log("graphData: ", graphData);
+        // console.log("graphData: ", graphData);
       })
       .catch((error) => {
         console.error("Error fetching clusters:", error);
       });
-  }, [checkedBoxItems]);
+  }, [checkedBoxItems , selectedNamespaces]);
 
   // 드래그 시작
   const startResizing = (e) => {
@@ -301,7 +307,7 @@ const Main = () => {
       <div className="main-content">
         {/* ✅ 메인 컨텐츠 (Topology 포함) */}
         <div>
-        <Header selectedNamespaces={selectedNamespaces} onSelectNamespaceChange={handleSelectNamespaceChange} />
+        <Header selectedNamespaces={selectedNamespaces} onSelectNamespaceChange={handleSelectNamespaceChange} clusterInfo={clusterNamespaces}/>
         </div>
         <div className="content" style={{ height: `${100 - tableHeight}vh`, position: "relative" }}>
         {/* <Topology2 data={topologyData} width={1000} height={600} selectedNamespace={selectedNamespace} selectedLog={logData}/> */}

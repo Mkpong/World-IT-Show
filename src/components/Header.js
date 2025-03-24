@@ -2,20 +2,6 @@ import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import Help from "./Help"; // 도움말 컴포넌트 import
 
-// 클러스터 데이터
-const clusterData = {
-  clusterA: ["namespace1", "namespace2", "namespaceX"],
-  clusterB: ["namespace3", "namespace4", "namespaceY", "namespaceZ"],
-};
-
-// 전체 네임스페이스 리스트
-const allOptions = Object.entries(clusterData).flatMap(([clusterName, namespaces]) =>
-  namespaces.map((ns) => ({
-    value: `${clusterName}/${ns}`,
-    label: ns,
-  }))
-);
-
 // ✔️ 선택된 항목에 체크 마크 커스텀
 const CustomOption = (props) => {
   const { data, isSelected } = props;
@@ -33,7 +19,7 @@ const CustomOption = (props) => {
 const CustomMenuList = (props) => {
   const {
     children,
-    selectProps: { onSelectNamespaceChange, selectedNamespaces },
+    selectProps: { onSelectNamespaceChange, selectedNamespaces, allOptions },
   } = props;
 
   const isAllSelected = selectedNamespaces.length === allOptions.length;
@@ -66,21 +52,29 @@ const CustomMenuList = (props) => {
 };
 
 // 🧩 Header 컴포넌트
-const Header = ({ selectedNamespaces, onSelectNamespaceChange }) => {
+const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) => {
   const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
-    console.log("Header re-rendered");
-    console.log(selectedNamespaces);
-  }, [selectedNamespaces]);
+    // console.log("selected:", selectedNamespaces);
+    // console.log("clusterInfo:", clusterInfo);
+  }, [selectedNamespaces, clusterInfo]);
 
-  const groupedOptions = Object.entries(clusterData).map(([clusterName, namespaces]) => ({
-    label: clusterName,
-    options: namespaces.map((ns) => ({
-      value: `${clusterName}/${ns}`,
-      label: ns,
-    })),
-  }));
+  // ✅ 그룹 옵션 구성
+  const groupedOptions = Object.entries(clusterInfo).map(
+    ([clusterName, namespaceList]) => ({
+      label: clusterName,
+      options: namespaceList.map((ns) => ({
+        clusterName: clusterName,
+        namespace: ns,
+        value: `${clusterName}/${ns}`,
+        label: ns,
+      })),
+    })
+  );
+
+  // ✅ 전체 옵션 리스트 (Select All에 사용)
+  const allOptions = groupedOptions.flatMap(group => group.options);
 
   return (
     <div
@@ -108,10 +102,13 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange }) => {
           }}
           hideSelectedOptions={false}
           closeMenuOnSelect={false}
+          selectedNamespaces={selectedNamespaces} // CustomMenuList 용
+          onSelectNamespaceChange={onSelectNamespaceChange} // CustomMenuList 용
+          allOptions={allOptions} // ✅ CustomMenuList 용
           styles={{
             valueContainer: (base) => ({
               ...base,
-              flexWrap: "wrap",          // ✅ 아래로 줄바꿈
+              flexWrap: "wrap",
               overflow: "visible",
               maxHeight: "unset",
               alignItems: "flex-start",
@@ -119,17 +116,15 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange }) => {
             control: (base) => ({
               ...base,
               minHeight: "auto",
-              minWidth: "600px",         // ✅ 고정 너비
+              minWidth: "600px",
               maxWidth: "100%",
-              flexWrap: "wrap",          // ✅ 줄바꿈
+              flexWrap: "wrap",
             }),
             multiValue: (base) => ({
               ...base,
               margin: "4px 4px",
             }),
           }}
-          selectedNamespaces={selectedNamespaces}
-          onSelectNamespaceChange={onSelectNamespaceChange}
         />
       </div>
 
