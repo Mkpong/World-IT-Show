@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Log from "../components/Log"; // 테이블 컴포넌트 추가
 import "./Main.css";
-import Topology2 from "../components/Topology2"
 import axios from 'axios';
 import ClusterTopology from "../components/ClusterTopology";
 import ClusterTopology2 from "../components/ClusterTopology2";
@@ -141,6 +140,7 @@ const Main = () => {
           return acc;
         }, {});
         setClusterNamespaces(formattedData);
+        console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching clusters:", error);
@@ -156,15 +156,15 @@ const Main = () => {
           if(!ns_seen.has(srcNamespace)){
             ns_seen.add(srcNamespace);
             combo.push({
-              id: srcNamespace+"c",
-              label: srcNamespace,
+              id: srcNamespace+"c", // 여기 클러스터 이름 추가해야 할듯
+              label: dstNamespace,
             })
           }
           if(!ns_seen.has(dstNamespace)){
             ns_seen.add(dstNamespace);
             combo.push({
               id: dstNamespace+"c",
-              label: dstNamespace,
+              label: dstNamespace, // 여기도 클러스터 이름 추가해야 할듯
             })
           }
         })

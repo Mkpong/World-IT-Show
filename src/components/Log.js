@@ -6,7 +6,7 @@ const Log = ({ onLogHover, logEntries}) => {
   const handleMouseEnter = (logData) => {
     // console.log("Hovered Log Data:", logData);
     // 원하는 이벤트 처리 (예: 상태 업데이트, API 요청 등)
-    onLogHover(logData);
+    // onLogHover(logData);
   };
 
   return (
