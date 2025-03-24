@@ -4,7 +4,7 @@ import G6 from "@antv/g6";
 import Popup from "./Popup";
 import EdgePopup from "./EdgePopup";
 
-const ClusterTopology2 = ({ data }) => {
+const ClusterTopology3 = ({ data }) => {
   const containerRef = useRef(null);
   const graphRef = useRef(null);
   const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, node: null });
@@ -186,4 +186,4 @@ const ClusterTopology2 = ({ data }) => {
   );
 };
 
-export default ClusterTopology2;
+export default ClusterTopology3;
