@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
-import Help from "./Help"; // 도움말 컴포넌트 import
+import Help from "./Help";
 
 // ✔️ 선택된 항목에 체크 마크 커스텀
 const CustomOption = (props) => {
@@ -51,21 +51,14 @@ const CustomMenuList = (props) => {
   );
 };
 
-// 🧩 Header 컴포넌트
-const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) => {
+const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo, onRefresh }) => {
   const [showHelp, setShowHelp] = useState(false);
 
-  useEffect(() => {
-    // console.log("selected:", selectedNamespaces);
-    // console.log("clusterInfo:", clusterInfo);
-  }, [selectedNamespaces, clusterInfo]);
-
-  // ✅ 그룹 옵션 구성
   const groupedOptions = Object.entries(clusterInfo).map(
     ([clusterName, namespaceList]) => ({
       label: clusterName,
       options: namespaceList.map((ns) => ({
-        clusterName: clusterName,
+        clusterName,
         namespace: ns,
         value: `${clusterName}/${ns}`,
         label: ns,
@@ -73,7 +66,6 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) =>
     })
   );
 
-  // ✅ 전체 옵션 리스트 (Select All에 사용)
   const allOptions = groupedOptions.flatMap(group => group.options);
 
   return (
@@ -84,11 +76,11 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) =>
         backgroundColor: "#f5f5f5",
         borderBottom: "1px solid #ccc",
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "flex-start",
         gap: "12px",
       }}
     >
+      {/* 왼쪽: Select */}
       <div style={{ width: "600px" }}>
         <Select
           isMulti
@@ -102,9 +94,9 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) =>
           }}
           hideSelectedOptions={false}
           closeMenuOnSelect={false}
-          selectedNamespaces={selectedNamespaces} // CustomMenuList 용
-          onSelectNamespaceChange={onSelectNamespaceChange} // CustomMenuList 용
-          allOptions={allOptions} // ✅ CustomMenuList 용
+          selectedNamespaces={selectedNamespaces}
+          onSelectNamespaceChange={onSelectNamespaceChange}
+          allOptions={allOptions}
           styles={{
             valueContainer: (base) => ({
               ...base,
@@ -128,26 +120,45 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo }) =>
         />
       </div>
 
-      {/* ? 아이콘 버튼 */}
-      <button
-        onClick={() => setShowHelp(true)}
-        style={{
-          fontSize: "18px",
-          width: "30px",
-          height: "30px",
-          borderRadius: "50%",
-          border: "1px solid #ccc",
-          backgroundColor: "#fff",
-          cursor: "pointer",
-          textAlign: "center",
-          marginTop: "3px",
-        }}
-        title="도움말"
-      >
-        ?
-      </button>
+      {/* 오른쪽: 버튼 그룹 */}
+      <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+        {/* 🔁 새로고침 버튼 */}
+        <button
+          onClick={onRefresh}
+          style={{
+            fontSize: "14px",
+            padding: "6px 12px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            backgroundColor: "#fff",
+            cursor: "pointer",
+            marginTop: "3px",
+          }}
+        >
+          🔁 새로고침
+        </button>
 
-      {/* Help 팝업 표시 */}
+        {/* ? 도움말 버튼 */}
+        <button
+          onClick={() => setShowHelp(true)}
+          style={{
+            fontSize: "18px",
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            border: "1px solid #ccc",
+            backgroundColor: "#fff",
+            cursor: "pointer",
+            textAlign: "center",
+            marginTop: "3px",
+          }}
+          title="도움말"
+        >
+          ?
+        </button>
+      </div>
+
+      {/* 도움말 팝업 */}
       {showHelp && <Help onClose={() => setShowHelp(false)} />}
     </div>
   );

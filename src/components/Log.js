@@ -14,10 +14,10 @@ const Log = ({ onLogHover, logEntries}) => {
       <Table className="custom-table">
         <thead>
           <tr>
-            {/* <th>Source Cluster</th> */}
+            <th>Source Cluster</th>
             <th className="source">Source Pod<em>namespace</em></th>
             <th>Source IP:Port</th>
-            {/* <th>Destination Cluster</th> */}
+            <th>Destination Cluster</th>
             <th className="destination">Destination Pod<em>namespace</em></th>
             <th>Destination IP:PORT</th>
             <th className="source">Method<em>path</em></th>
@@ -29,8 +29,10 @@ const Log = ({ onLogHover, logEntries}) => {
           {logEntries && Array.isArray(logEntries) ? (
             logEntries.map((entry, index) => (
               <tr key={index} className="hover-effect" onMouseEnter={() => handleMouseEnter(entry)}>
+                <td><span className="source">{entry.srcCluster ? entry.srcCluster : "-"}</span></td>
                 <td><span className="source">{entry.srcName}<em>{entry.srcNamespace}</em></span></td>
                 <td><span className="source">{entry.srcIP}:{entry.srcPort}</span></td>
+                <td><span className="source">{entry.dstCluster ? entry.dstCluster : "-"}</span></td>
                 <td><span className="destination">{entry.dstName}<em>{entry.dstNamespace}</em></span></td>
                 <td><span className="destination">{entry.dstIP}:{entry.dstPort}</span></td>
                 <td><span className="source">{entry.method}<em>{entry.path}</em></span></td>

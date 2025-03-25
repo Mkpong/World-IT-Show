@@ -114,6 +114,10 @@ const Main = () => {
     setSelectedNamespaces(selectedOptions || []);
   };
   
+  // 새로고침 버튼 함수
+  const handleRefresh = () => {
+    setSelectedNamespaces((prev) => [...prev]);
+  }
 
 
   // 클러스터 정보 불러오는 블록
@@ -135,109 +139,188 @@ const Main = () => {
 
   useEffect(() => {
     axios.get("/clusters")
-      .then((response) => {
-        const formattedData = response.data.reduce((acc, cluster) => {
-          acc[cluster.name] = cluster.namespaces.map(ns => ns.name);
-          return acc;
-        }, {});
-        setClusterNamespaces(formattedData);
-      })
-      .catch((error) => {
-        console.error("Error fetching clusters:", error);
-      });
+    .then((response) => {
+      // 1. 클러스터 이름 기준으로 정렬
+      const sortedClusters = [...response.data].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
+      // 2. 각 클러스터의 네임스페이스 정렬
+      const formattedData = sortedClusters.reduce((acc, cluster) => {
+        const sortedNamespaces = [...cluster.namespaces].sort((a, b) => {
+          if (typeof a === 'string') return a.localeCompare(b);
+          return a.name.localeCompare(b.name);
+        });
+
+        acc[cluster.name] = sortedNamespaces;
+        return acc;
+      }, {});
+
+      setClusterNamespaces(formattedData);
+      console.log("Formatted & Sorted:", formattedData);
+    })
+    .catch((error) => {
+      console.error("Error fetching clusters:", error);
+    });
 
     const request_body = selectedNamespaces.map(({ clusterName, namespace }) => ({
       clustername: clusterName,
       namespace: namespace,
     }));
     console.log("log request body:", request_body)
-    axios.get("/api/logs") // axios.post("/api/logs" , request_body)
-      .then((response) => {
-        console.log(response.data);
-        setLogEntries(response.data);
-        const combo = [];
-        const ns_seen = new Set();
-        response.data.forEach((item) => {
-          const {srcNamespace, dstNamespace} = item;
-          if(!ns_seen.has(srcNamespace)){
-            ns_seen.add(srcNamespace);
-            combo.push({
-              id: srcNamespace+"c", // 여기 클러스터 이름 추가해야 할듯
-              label: dstNamespace,
+    if(selectedNamespaces.length === 0){
+      setLogEntries({});
+      setTopologyData({ nodes: [], edges: [] })
+    }
+    else{
+      axios.post("/api/logs" , request_body)
+        .then((response) => {
+          setLogEntries(response.data);
+          console.log(checkedBoxItems.cluster);
+          const combo = [];
+          // Only Namespace ComboBox
+          if(checkedBoxItems.namespace && !checkedBoxItems.cluster)
+          {
+            const ns_seen = new Set();
+            response.data.forEach((item) => {
+              const { srcCluster, dstCluster, srcNamespace, dstNamespace} = item;
+              const src_id = srcCluster+"/"+srcNamespace;
+              if(!ns_seen.has(src_id)){
+                ns_seen.add(src_id);
+                combo.push({
+                  id: src_id,
+                  label: src_id,
+                })
+              }
+              const dst_id = dstCluster+"/"+dstNamespace;
+              if(!ns_seen.has(dst_id)){
+                ns_seen.add(dst_id);
+                combo.push({
+                  id: dst_id,
+                  label: dst_id, 
+                })
+              }
             })
           }
-          if(!ns_seen.has(dstNamespace)){
-            ns_seen.add(dstNamespace);
-            combo.push({
-              id: dstNamespace+"c",
-              label: dstNamespace, // 여기도 클러스터 이름 추가해야 할듯
+          // Only cluster combobox
+          if(checkedBoxItems.cluster && !checkedBoxItems.namespace){
+            const cluster_seen = new Set();
+            response.data.forEach((item) => {
+              const {srcCluster, dstCluster , srcNamespace, dstNamespace} = item;
+              const src_id = srcCluster+"/"+srcNamespace;
+              if(!cluster_seen.has(src_id)){
+                cluster_seen.add(src_id);
+                combo.push({
+                  id: src_id,
+                  label: srcCluster+"test",
+                  })
+              }
+              const dst_id = dstCluster+"/"+dstNamespace;
+              if(!cluster_seen.has(dst_id)){
+                cluster_seen.add(dst_id);
+                combo.push({
+                  id: dst_id,
+                  label: dstCluster+"test",
+                })
+              }
             })
           }
-        })
-        // Pod 데이터 추출 - kind 추가해야 함
-        const seen = new Set();
-        const node = [];
-        const edge = [];
-        response.data.forEach((item)=> {
-          const { dstIP, dstName, dstNamespace, srcIP, srcName, srcNamespace, srcType, dstType, srcPort, dstPort, method, path, responseCode, timeStamp} = item;
-          if(!seen.has(srcIP)){
-            seen.add(srcIP);
-            const style = getNodeStyle(srcType);
-            node.push({
-              id: srcName,
-              label: srcName,
-              ip: srcIP,
-              name: srcName,
-              kind: srcType,
-              namespace: srcNamespace,
-              comboId: srcNamespace+"c",
-              ...style
-            });
+          // select namespace+cluster combobox
+          if(checkedBoxItems.cluster && checkedBoxItems.namespace){
+            const ns_seen = new Set();
+            const cluster_seen = new Set();
+            // cluster combobox 추가
+            response.data.forEach((item) => {
+              const {srcCluster, dstCluster , srcNamespace, dstNamespace} = item;
+              if(!cluster_seen.has(srcCluster)){
+                cluster_seen.add(srcCluster);
+                if(srcCluster !== "Unknown" && srcCluster !== ""){
+                  combo.push({
+                    id: srcCluster+"/",
+                    label: srcCluster,
+                  })
+                }
+              }
+              if(!cluster_seen.has(dstCluster)){
+                cluster_seen.add(dstCluster);
+                if(dstCluster !== "Unknown" && dstCluster !== ""){
+                  combo.push({
+                    id: dstCluster+"/",
+                    label: dstCluster,
+                  })
+                }
+              }
+              // 여기 네임스페이스 콤보박스 추가해야 함
+            })
+            
           }
-          if(!seen.has(dstIP)){
-            seen.add(dstIP);
-            const style = getNodeStyle(dstType);
-            node.push({
-              id: dstName,
-              label: dstName,
-              ip: dstIP,
-              name: dstName,
-              kind: dstType,
-              namespace: dstNamespace,
-              comboId: dstNamespace+"c",
-              ...style
-            });
-          }
-          edge.push({
-            source: srcName,
-            target: dstName,
-            srcName: srcName,
-            dstName: dstName,
-            srcNamespace: srcNamespace,
-            dstNamespace: dstNamespace,
-            srcKind: srcType,
-            dstKind: dstType,
-            srcIP: srcIP,
-            dstIP: dstIP,
-            srcPort: srcPort,
-            dstPort: dstPort,
-            method: method,
-            path: path,
-            responseCode: responseCode,
-            timeStamp: timeStamp,
+          // Pod 데이터 추출 - kind 추가해야 함
+          const seen = new Set();
+          const node = [];
+          const edge = [];
+          response.data.forEach((item)=> {
+            const { srcCluster, dstCluster, dstIP, dstName, dstNamespace, srcIP, srcName, srcNamespace, srcType, dstType, srcPort, dstPort, method, path, responseCode, timeStamp} = item;
+            if(!seen.has(srcIP)){
+              seen.add(srcIP);
+              const style = getNodeStyle(srcType);
+              node.push({
+                id: srcName,
+                label: srcName,
+                ip: srcIP,
+                name: srcName,
+                kind: srcType,
+                cluster: srcCluster,
+                namespace: srcNamespace,
+                comboId: srcCluster+"/"+srcNamespace,
+                ...style
+              });
+            }
+            if(!seen.has(dstIP)){
+              seen.add(dstIP);
+              const style = getNodeStyle(dstType);
+              node.push({
+                id: dstName,
+                label: dstName,
+                ip: dstIP,
+                name: dstName,
+                kind: dstType,
+                cluster: dstCluster,
+                namespace: dstNamespace,
+                comboId: dstCluster+"/"+dstNamespace,
+                ...style
+              });
+            }
+            edge.push({
+              source: srcName,
+              target: dstName,
+              srcName: srcName,
+              dstName: dstName,
+              srcNamespace: srcNamespace,
+              dstNamespace: dstNamespace,
+              srcKind: srcType,
+              dstKind: dstType,
+              srcIP: srcIP,
+              dstIP: dstIP,
+              srcPort: srcPort,
+              dstPort: dstPort,
+              method: method,
+              path: path,
+              responseCode: responseCode,
+              timeStamp: timeStamp,
+            })
           })
+          const graphData = {
+            nodes: node,
+            edges: edge,
+            combos: combo
+          }
+          setTopologyData(graphData)
+          console.log("graphData: ", graphData);
         })
-        const graphData = {
-          nodes: node,
-          edges: edge,
-          combos: combo
-        }
-        setTopologyData(graphData)
-        // console.log("graphData: ", graphData);
-      })
-      .catch((error) => {
-        console.error("Error fetching clusters:", error);
-      });
+        .catch((error) => {
+          console.error("Error fetching clusters:", error);
+        });
+      }
   }, [checkedBoxItems , selectedNamespaces]);
 
   // 드래그 시작
@@ -274,12 +357,6 @@ const Main = () => {
     setLogData(data);
   };
 
-
-  // logData 변경 시 다시 렌더링?
-  // useEffect(() => {
-  //   console.log(logData);
-  // }, [logData]);
-
   
   const renderTopologyComponent = () => {
     const {cluster, namespace} = checkedBoxItems;
@@ -289,7 +366,7 @@ const Main = () => {
       return <ClusterTopology data={graphDataWithoutCombos} />;
     }
     if (cluster && !namespace) { // Only cluster ComboBox
-      return <ClusterTopology3 data={data2} />;
+      return <ClusterTopology3 data={topologyData} />;
     }
     if (!cluster && namespace) { // Only Namespace ComboBox
       return <ClusterTopology3 data={topologyData} />;
@@ -307,7 +384,12 @@ const Main = () => {
       <div className="main-content">
         {/* ✅ 메인 컨텐츠 (Topology 포함) */}
         <div>
-        <Header selectedNamespaces={selectedNamespaces} onSelectNamespaceChange={handleSelectNamespaceChange} clusterInfo={clusterNamespaces}/>
+        <Header
+          selectedNamespaces={selectedNamespaces}
+          onSelectNamespaceChange={handleSelectNamespaceChange}
+          clusterInfo={clusterNamespaces}
+          onRefresh={handleRefresh}
+        />
         </div>
         <div className="content" style={{ height: `${100 - tableHeight}vh`, position: "relative" }}>
         {/* <Topology2 data={topologyData} width={1000} height={600} selectedNamespace={selectedNamespace} selectedLog={logData}/> */}

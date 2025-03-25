@@ -40,7 +40,7 @@ const Popup = ({ x, y, node, onClose }) => {
       </button>
 
       {/* 팝업 내용 */}
-      <div style={{fontSize: "17px"}}>Cluster-1</div>
+      <div style={{fontSize: "17px"}}>{node.cluster}</div>
       <strong>{node.label}</strong>
       <div>Namespace: {node.namespace}</div>
       <div>Type: {node.kind}</div>
