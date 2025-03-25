@@ -2,7 +2,7 @@ import React from "react";
 import { Table } from "react-bootstrap";
 import "./Log.css";
 
-const Log = ({ onLogHover, logEntries}) => {
+const Log = ({ logEntries}) => {
   const handleMouseEnter = (logData) => {
     // console.log("Hovered Log Data:", logData);
     // 원하는 이벤트 처리 (예: 상태 업데이트, API 요청 등)

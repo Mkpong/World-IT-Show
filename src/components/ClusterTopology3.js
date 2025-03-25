@@ -56,6 +56,20 @@ const ClusterTopology3 = ({ data }) => {
             fill: "#999",
           },
         },
+        labelCfg: {
+          autoRotate: true,
+          refY: 5,
+          style: {
+            fontSize: 10,
+            fill: "#333",
+            // background: {
+            //   fill: "#fff",
+            //   stroke: "#ccc",
+            //   padding: [2, 4],
+            //   radius: 2,
+            // },
+          },
+        },
       },
       defaultCombo: {
         type: "rect",

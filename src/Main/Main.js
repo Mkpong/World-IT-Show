@@ -4,7 +4,6 @@ import Log from "../components/Log"; // 테이블 컴포넌트 추가
 import "./Main.css";
 import axios from 'axios';
 import ClusterTopology from "../components/ClusterTopology";
-import ClusterTopology2 from "../components/ClusterTopology2";
 import ClusterTopology3 from "../components/ClusterTopology3";
 import Header from "../components/Header";
 import GraphBottom from "../components/GraphBottom";
@@ -45,51 +44,14 @@ const Main = () => {
       ],
       // 파드 간 연결 에지
       edges: [
-        { source: "pod-1", target: "pod-2" },
-        { source: "pod-1", target: "pod-3" },
-        { source: "pod-1", target: "pod-4" },
-        { source: "pod-1", target: "pod-5" },
-        { source: "pod-1", target: "pod-a" },
-        { source: "pod-1", target: "pod-b" },
-        { source: "pod-3", target: "pod-7" },
-        { source: "pod-3", target: "pod-8" },
-      ],
-    };
-
-    const data2 = {
-      // 파드 노드 목록
-      nodes: [
-        // 네임스페이스 ns-a에 속하는 파드
-        { id: "pod-1", label: "Istio", comboId: "cluster-1", type: "star" },
-        { id: "pod-2", label: "Pod 2", comboId: "cluster-1" },
-        { id: "pod-a", label: "Pod a", comboId: "cluster-1" },
-        { id: "pod-b", label: "Pod b", comboId: "cluster-1" },
-        // 네임스페이스 ns-b에 속하는 파드
-        { id: "pod-3", label: "Pod 3", comboId: "cluster-2" },
-        { id: "pod-4", label: "Pod 4", comboId: "cluster-2" },
-        // 네임스페이스 ns-x에 속하는 파드
-        { id: "pod-5", label: "Pod 5", comboId: "cluster-3" },
-        // 네임스페이스 ns-y에 속하는 파드
-        { id: "pod-6", label: "Sentryflow-api", comboId: "cluster-3" },
-        { id: "pod-7", label: "Sentryflow-api", comboId: "cluster-3" },
-        { id: "pod-8", label: "Sentryflow-api", comboId: "cluster-3" },
-      ],
-      combos: [
-        // 최상위 콤보 (클러스터)
-        { id: "cluster-1", label: "Cluster 1" },
-        { id: "cluster-2", label: "Cluster 2" },
-        { id: "cluster-3", label: "Cluster 3" },
-      ],
-      // 파드 간 연결 에지
-      edges: [
-        { source: "pod-1", target: "pod-2" },
-        { source: "pod-1", target: "pod-3" },
-        { source: "pod-1", target: "pod-4" },
-        { source: "pod-1", target: "pod-5" },
-        { source: "pod-1", target: "pod-a" },
-        { source: "pod-1", target: "pod-b" },
-        { source: "pod-3", target: "pod-7" },
-        { source: "pod-3", target: "pod-8" },
+        { source: "pod-1", target: "pod-2" , label: "8080 → 80"},
+        { source: "pod-1", target: "pod-3" , label: "8080 → 80" },
+        { source: "pod-1", target: "pod-4" , label: "8080 → 80"},
+        { source: "pod-1", target: "pod-5" , label: "8080 → 80"},
+        { source: "pod-1", target: "pod-a" , label: "8080 → 80"},
+        { source: "pod-1", target: "pod-b" , label: "8080 → 80"},
+        { source: "pod-3", target: "pod-7" , label: "8080 → 80"},
+        { source: "pod-3", target: "pod-8" , label: "8080 → 80"},
       ],
     };
 
@@ -101,6 +63,7 @@ const Main = () => {
     namespace: false,
   })
   const [selectedNamespaces, setSelectedNamespaces] = useState([]); // 상단바에서 선택한 네임스페이스 관리
+  const [timeRange, setTimeRange] = useState("1m")
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -117,6 +80,10 @@ const Main = () => {
   // 새로고침 버튼 함수
   const handleRefresh = () => {
     setSelectedNamespaces((prev) => [...prev]);
+  }
+
+  const hanldeTimeRangeChange = (selectedTimeRange) => {
+    setTimeRange(selectedTimeRange.value)
   }
 
 
@@ -163,10 +130,13 @@ const Main = () => {
       console.error("Error fetching clusters:", error);
     });
 
-    const request_body = selectedNamespaces.map(({ clusterName, namespace }) => ({
-      clustername: clusterName,
-      namespace: namespace,
-    }));
+    const request_body = {
+      timerange: timeRange, // 예: "5m" 또는 "30m"
+      namespaces: selectedNamespaces.map(({ clusterName, namespace }) => ({
+        clustername: clusterName,
+        namespace: namespace,
+      })),
+    };
     console.log("log request body:", request_body)
     if(selectedNamespaces.length === 0){
       setLogEntries({});
@@ -207,20 +177,20 @@ const Main = () => {
             const cluster_seen = new Set();
             response.data.forEach((item) => {
               const {srcCluster, dstCluster , srcNamespace, dstNamespace} = item;
-              const src_id = srcCluster+"/"+srcNamespace;
+              const src_id  = srcCluster+"-c";
               if(!cluster_seen.has(src_id)){
                 cluster_seen.add(src_id);
                 combo.push({
                   id: src_id,
-                  label: srcCluster+"test",
+                  label: srcCluster,
                   })
               }
-              const dst_id = dstCluster+"/"+dstNamespace;
+              const dst_id = dstCluster+"-c";
               if(!cluster_seen.has(dst_id)){
                 cluster_seen.add(dst_id);
                 combo.push({
                   id: dst_id,
-                  label: dstCluster+"test",
+                  label: dstCluster,
                 })
               }
             })
@@ -229,30 +199,44 @@ const Main = () => {
           if(checkedBoxItems.cluster && checkedBoxItems.namespace){
             const ns_seen = new Set();
             const cluster_seen = new Set();
-            // cluster combobox 추가
             response.data.forEach((item) => {
               const {srcCluster, dstCluster , srcNamespace, dstNamespace} = item;
+              // source, destination Cluster 추가
               if(!cluster_seen.has(srcCluster)){
                 cluster_seen.add(srcCluster);
-                if(srcCluster !== "Unknown" && srcCluster !== ""){
-                  combo.push({
-                    id: srcCluster+"/",
-                    label: srcCluster,
-                  })
-                }
+                combo.push({
+                  id: srcCluster+"-c",
+                  label: srcCluster,
+                })
               }
               if(!cluster_seen.has(dstCluster)){
                 cluster_seen.add(dstCluster);
-                if(dstCluster !== "Unknown" && dstCluster !== ""){
-                  combo.push({
-                    id: dstCluster+"/",
-                    label: dstCluster,
-                  })
-                }
+                combo.push({
+                  id: dstCluster+"-c",
+                  label: dstCluster,
+                })
               }
-              // 여기 네임스페이스 콤보박스 추가해야 함
+              // source 네임스페이스 추가
+              const src_id = srcCluster+"/"+srcNamespace;
+              if(!ns_seen.has(src_id)){
+                ns_seen.add(src_id);
+                combo.push({
+                  id: src_id,
+                  label: srcNamespace,
+                  parentId: srcCluster+"-c",
+                })
+              }
+              // destination 네임스페이스 추가
+              const dst_id = dstCluster+"/"+dstNamespace;
+              if(!ns_seen.has(dst_id)){
+                ns_seen.add(dst_id);
+                combo.push({
+                  id: dst_id,
+                  label: dstNamespace,
+                  parentId: dstCluster+"-c",
+                })
+              }
             })
-            
           }
           // Pod 데이터 추출 - kind 추가해야 함
           const seen = new Set();
@@ -271,7 +255,7 @@ const Main = () => {
                 kind: srcType,
                 cluster: srcCluster,
                 namespace: srcNamespace,
-                comboId: srcCluster+"/"+srcNamespace,
+                comboId: (checkedBoxItems.namespace) ? srcCluster+"/"+srcNamespace : srcCluster+"-c",
                 ...style
               });
             }
@@ -286,7 +270,7 @@ const Main = () => {
                 kind: dstType,
                 cluster: dstCluster,
                 namespace: dstNamespace,
-                comboId: dstCluster+"/"+dstNamespace,
+                comboId: (checkedBoxItems.namespace) ? dstCluster+"/"+dstNamespace : dstCluster+"-c",
                 ...style
               });
             }
@@ -307,6 +291,7 @@ const Main = () => {
               path: path,
               responseCode: responseCode,
               timeStamp: timeStamp,
+              label: srcPort+"→"+dstPort,
             })
           })
           const graphData = {
@@ -321,42 +306,8 @@ const Main = () => {
           console.error("Error fetching clusters:", error);
         });
       }
-  }, [checkedBoxItems , selectedNamespaces]);
-
-  // 드래그 시작
-  const startResizing = (e) => {
-    isResizing.current = true;
-    document.body.style.userSelect = "none"; // 드래그 시 텍스트 선택 방지
-    document.addEventListener("mousemove", resizeTable);
-    document.addEventListener("mouseup", stopResizing);
-  };
-
-  // 드래그 중 (테이블 크기 조절)
-  const resizeTable = (e) => {
-    if (!isResizing.current) return;
-
-    const newHeight = ((window.innerHeight - e.clientY) / window.innerHeight) * 100;
-
-    if (newHeight >= 10 && newHeight <= 50) {
-      setTableHeight(newHeight);
-    }
-  };
-
-  // 드래그 종료
-  const stopResizing = () => {
-    isResizing.current = false;
-    document.body.style.userSelect = "auto"; // 다시 텍스트 선택 가능하게 변경
-    document.removeEventListener("mousemove", resizeTable);
-    document.removeEventListener("mouseup", stopResizing);
-  };
-
-  const [logData, setLogData] = useState(null);
-
-  // Log에서 받은 데이터를 저장
-  const handleLogData = (data) => {
-    setLogData(data);
-  };
-
+      console.log("Time", timeRange);
+  }, [checkedBoxItems , selectedNamespaces , timeRange]);
   
   const renderTopologyComponent = () => {
     const {cluster, namespace} = checkedBoxItems;
@@ -389,11 +340,13 @@ const Main = () => {
           onSelectNamespaceChange={handleSelectNamespaceChange}
           clusterInfo={clusterNamespaces}
           onRefresh={handleRefresh}
+          onTimeRangeChange={hanldeTimeRangeChange}
         />
         </div>
         <div className="content" style={{ height: `${100 - tableHeight}vh`, position: "relative" }}>
         {/* <Topology2 data={topologyData} width={1000} height={600} selectedNamespace={selectedNamespace} selectedLog={logData}/> */}
         {renderTopologyComponent()}
+        {/* {selectedNamespaces.length === 0 ? "Select Namespace" : renderTopologyComponent()} */}
         </div>
         <div>
           <GraphBottom checkedBoxItems={checkedBoxItems} onCheckboxChange={handleCheckboxChange}/>
@@ -404,7 +357,7 @@ const Main = () => {
 
         {/* ✅ 아래쪽 테이블 (높이 조절 가능) */}
         <div className="table-container" style={{ height: `${tableHeight}vh` }}>
-          <Log logEntries={logEntries} onLogHover={handleLogData}/>
+          <Log logEntries={logEntries}/>
         </div>
       </div>
     </div>

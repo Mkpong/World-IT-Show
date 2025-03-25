@@ -1,13 +1,15 @@
+// Header.js
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import Help from "./Help";
+import "./Header.css";
 
 // ✔️ 선택된 항목에 체크 마크 커스텀
 const CustomOption = (props) => {
   const { data, isSelected } = props;
   return (
     <components.Option {...props}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="custom-option">
         <span>{data.label}</span>
         {isSelected && <span>✔️</span>}
       </div>
@@ -33,16 +35,7 @@ const CustomMenuList = (props) => {
   return (
     <components.MenuList {...props}>
       {!isAllSelected && (
-        <div
-          style={{
-            padding: "8px 12px",
-            borderBottom: "1px solid #ddd",
-            cursor: "pointer",
-            fontWeight: "bold",
-            backgroundColor: "#f0f0f0",
-          }}
-          onClick={handleSelectAll}
-        >
+        <div className="select-all" onClick={handleSelectAll}>
           Select All
         </div>
       )}
@@ -51,7 +44,13 @@ const CustomMenuList = (props) => {
   );
 };
 
-const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo, onRefresh }) => {
+const Header = ({
+  selectedNamespaces,
+  onSelectNamespaceChange,
+  clusterInfo,
+  onRefresh,
+  onTimeRangeChange,
+}) => {
   const [showHelp, setShowHelp] = useState(false);
 
   const groupedOptions = Object.entries(clusterInfo).map(
@@ -66,32 +65,27 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo, onRe
     })
   );
 
-  const allOptions = groupedOptions.flatMap(group => group.options);
+  const allOptions = groupedOptions.flatMap((group) => group.options);
+
+  const timeOptions = [
+    { value: "1m", label: "1m" },
+    { value: "3m", label: "3m" },
+    { value: "5m", label: "5m" },
+    { value: "10m", label: "10m" },
+    { value: "30m", label: "30m" },
+    { value: "60m", label: "60m" },
+  ];
 
   return (
-    <div
-      style={{
-        position: "relative",
-        padding: "12px 20px",
-        backgroundColor: "#f5f5f5",
-        borderBottom: "1px solid #ccc",
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-      }}
-    >
-      {/* 왼쪽: Select */}
-      <div style={{ width: "600px" }}>
+    <div className="header-container">
+      <div className="namespace-select">
         <Select
           isMulti
           options={groupedOptions}
           value={selectedNamespaces}
           onChange={onSelectNamespaceChange}
           placeholder="Select Namespace"
-          components={{
-            Option: CustomOption,
-            MenuList: CustomMenuList,
-          }}
+          components={{ Option: CustomOption, MenuList: CustomMenuList }}
           hideSelectedOptions={false}
           closeMenuOnSelect={false}
           selectedNamespaces={selectedNamespaces}
@@ -120,45 +114,48 @@ const Header = ({ selectedNamespaces, onSelectNamespaceChange, clusterInfo, onRe
         />
       </div>
 
-      {/* 오른쪽: 버튼 그룹 */}
-      <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-        {/* 🔁 새로고침 버튼 */}
-        <button
-          onClick={onRefresh}
-          style={{
-            fontSize: "14px",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            border: "1px solid #ccc",
-            backgroundColor: "#fff",
-            cursor: "pointer",
-            marginTop: "3px",
+      <div className="time-select">
+        <Select
+          options={timeOptions}
+          defaultValue={timeOptions[0]}
+          onChange={onTimeRangeChange}
+          isSearchable={false}
+          styles={{
+            control: (base) => ({
+              ...base,
+              height: "32px",
+              minHeight: "32px",
+              fontSize: "12px",
+            }),
+            dropdownIndicator: (base) => ({
+              ...base,
+              padding: "4px",
+            }),
+            indicatorsContainer: (base) => ({
+              ...base,
+              height: "32px",
+            }),
+            valueContainer: (base) => ({
+              ...base,
+              padding: "2px 6px",
+            }),
           }}
-        >
-          🔁 새로고침
-        </button>
+        />
+      </div>
 
-        {/* ? 도움말 버튼 */}
+      <div className="header-buttons">
+        <button className="refresh-button" onClick={onRefresh} title="새로고침">
+          🔄
+        </button>
         <button
+          className="help-button"
           onClick={() => setShowHelp(true)}
-          style={{
-            fontSize: "18px",
-            width: "30px",
-            height: "30px",
-            borderRadius: "50%",
-            border: "1px solid #ccc",
-            backgroundColor: "#fff",
-            cursor: "pointer",
-            textAlign: "center",
-            marginTop: "3px",
-          }}
           title="도움말"
         >
           ?
         </button>
       </div>
 
-      {/* 도움말 팝업 */}
       {showHelp && <Help onClose={() => setShowHelp(false)} />}
     </div>
   );
