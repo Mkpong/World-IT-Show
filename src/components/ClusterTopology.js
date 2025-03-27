@@ -55,13 +55,6 @@ const ClusterTopology = ({data}) => {
             fill: "#999",
           },
         },
-        labelCfg: {
-          autoRotate: true,
-          style: {
-            fontSize: 10,
-            fill: "#333",
-          },
-        },
       },
       nodeStateStyles: {
         selected: {

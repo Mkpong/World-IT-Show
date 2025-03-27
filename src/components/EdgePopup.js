@@ -1,59 +1,74 @@
-// components/EdgePopup.js
 import React from "react";
 import { ArrowDown } from "react-bootstrap-icons";
+import "./EdgePopup.css";
 
 const EdgePopup = ({ x, y, edge, onClose }) => {
   if (!edge) return null;
 
   return (
     <div
-      style={{
-        position: "absolute",
-        top: y,
-        left: x,
-        backgroundColor: "#fff",
-        border: "1px solid #999",
-        padding: "12px 16px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-        zIndex: 10,
-        borderRadius: "8px",
-        minWidth: "180px",
-        fontSize: "14px",
-      }}
+      className="edge-popup"
+      style={{ top: y, left: x }}
       onClick={(e) => e.stopPropagation()}
     >
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "8px",
-          right: "8px",
-          background: "transparent",
-          border: "none",
-          fontSize: "16px",
-          fontWeight: "bold",
-          cursor: "pointer",
-          color: "#666",
-        }}
-        aria-label="Close"
-      >
+      <button className="edge-popup-close" onClick={onClose} aria-label="Close">
         ×
       </button>
 
       <strong>Source</strong>
-      <div>{edge.srcName}({edge.srcNamespace})</div>
-      <div>{edge.srcIP}:{edge.srcPort}</div>
-      <div>{edge.method}  {edge.path}</div>
-      <ArrowDown size={24} style={{ display: "block", margin: "4px auto" }} />
-      <strong>Target</strong>
-      <div>{edge.dstName}({edge.dstNamespace})</div>
-      <div>{edge.dstIP}:{edge.dstPort}</div>
-      <div style={{fontStyle: "italic", color: "red"}}>response: {edge.responseCode}</div>
-      <div>--------------</div>
-      <div>{edge.timeStamp}</div>
+      <table className="edge-popup-table">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{edge.srcName}</td>
+          </tr>
+          <tr>
+            <td>Namespace</td>
+            <td>{edge.srcNamespace}</td>
+          </tr>
+          <tr>
+            <td>IP:Port</td>
+            <td>{edge.srcIP}:{edge.srcPort}</td>
+          </tr>
+          <tr>
+            <td>Method</td>
+            <td>{edge.method}</td>
+          </tr>
+          <tr>
+            <td>Path</td>
+            <td>{edge.path}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      {/* 필요한 추가 정보 여기에 표시 가능 */}
+      <ArrowDown size={24} className="edge-popup-arrow" />
+
+      <strong>Destination</strong>
+      <table className="edge-popup-table">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{edge.dstName}</td>
+          </tr>
+          <tr>
+            <td>Namespace</td>
+            <td>{edge.dstNamespace}</td>
+          </tr>
+          <tr>
+            <td>IP:Port</td>
+            <td>{edge.dstIP}:{edge.dstPort}</td>
+          </tr>
+          <tr>
+            <td>Response</td>
+            <td className="edge-popup-response">{edge.responseCode}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="edge-popup-divider" />
+      <div>{edge.timeStamp}</div>
     </div>
   );
 };
+
 export default EdgePopup;

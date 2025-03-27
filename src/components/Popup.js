@@ -38,13 +38,28 @@ const Popup = ({ x, y, node, onClose }) => {
       >
         ×
       </button>
-
-      {/* 팝업 내용 */}
-      <div style={{fontSize: "17px"}}>{node.cluster}</div>
-      <strong>{node.label}</strong>
-      <div>Namespace: {node.namespace}</div>
-      <div>Type: {node.kind}</div>
-      <div>IP: {node.ip}</div>
+      
+      <strong>{node.kind}</strong>
+      <table className="edge-popup-table">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{node.label}</td>
+          </tr>
+          <tr>
+            <td>Cluster</td>
+            <td>{node.cluster}</td>
+          </tr>
+          <tr>
+            <td>Namespace</td>
+            <td>{node.namespace}</td>
+          </tr>
+          <tr>
+            <td>IP</td>
+            <td>{node.ip}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 };

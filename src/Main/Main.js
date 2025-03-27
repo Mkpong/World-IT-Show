@@ -6,56 +6,11 @@ import axios from 'axios';
 import ClusterTopology from "../components/ClusterTopology";
 import ClusterTopology3 from "../components/ClusterTopology3";
 import Header from "../components/Header";
-import GraphBottom from "../components/GraphBottom";
 import { Send } from "react-bootstrap-icons";
+import { image } from "d3";
 
 const Main = () => {
-     const data = {
-      // 파드 노드 목록
-      nodes: [
-        // 네임스페이스 ns-a에 속하는 파드
-        { id: "pod-1", label: "Istio", comboId: "ns-a", type: "star" },
-        { id: "pod-2", label: "Pod 2", comboId: "ns-a" },
-        { id: "pod-a", label: "Pod a", comboId: "ns-a" },
-        { id: "pod-b", label: "Pod b", comboId: "ns-a" },
-        // 네임스페이스 ns-b에 속하는 파드
-        { id: "pod-3", label: "Pod 3", comboId: "ns-b" },
-        { id: "pod-4", label: "Pod 4", comboId: "ns-b" },
-        // 네임스페이스 ns-x에 속하는 파드
-        { id: "pod-5", label: "Pod 5", comboId: "ns-x" },
-        // 네임스페이스 ns-y에 속하는 파드
-        { id: "pod-6", label: "Sentryflow-api", comboId: "ns-y" },
-        { id: "pod-7", label: "Sentryflow-api", comboId: "ns-z" },
-        { id: "pod-8", label: "Sentryflow-api", comboId: "ns-z" },
-      ],
-      // 콤보 구조: Cluster -> Namespace
-      combos: [
-        // 최상위 콤보 (클러스터)
-        { id: "cluster-1", label: "Cluster 1" },
-        { id: "cluster-2", label: "Cluster 2" },
-        { id: "cluster-3", label: "Cluster 3" },
-
-        // 서브 콤보 (네임스페이스) - parentId로 상위 클러스터 지정
-        { id: "ns-a", label: "Namespace A", parentId: "cluster-1" },
-        { id: "ns-b", label: "Namespace B", parentId: "cluster-1" },
-        { id: "ns-x", label: "Namespace X", parentId: "cluster-2" },
-        { id: "ns-y", label: "Namespace Y", parentId: "cluster-2" },
-        { id: "ns-z", label: "Namespace Z", parentId: "cluster-3" },
-      ],
-      // 파드 간 연결 에지
-      edges: [
-        { source: "pod-1", target: "pod-2" , label: "8080 → 80"},
-        { source: "pod-1", target: "pod-3" , label: "8080 → 80" },
-        { source: "pod-1", target: "pod-4" , label: "8080 → 80"},
-        { source: "pod-1", target: "pod-5" , label: "8080 → 80"},
-        { source: "pod-1", target: "pod-a" , label: "8080 → 80"},
-        { source: "pod-1", target: "pod-b" , label: "8080 → 80"},
-        { source: "pod-3", target: "pod-7" , label: "8080 → 80"},
-        { source: "pod-3", target: "pod-8" , label: "8080 → 80"},
-      ],
-    };
-
-  const [tableHeight, setTableHeight] = useState(35); // 초기값 30vh
+  const [tableHeight, setTableHeight] = useState(40); // 초기값 30vh
   const isResizing = useRef(false);
   // Cluster, Namespace Checkbox Rendering
   const [checkedBoxItems, SetCheckedBoxItems] = useState({
@@ -64,7 +19,9 @@ const Main = () => {
   })
   const [selectedNamespaces, setSelectedNamespaces] = useState([]); // 상단바에서 선택한 네임스페이스 관리
   const [timeRange, setTimeRange] = useState("1m")
-
+  const [refreshInterval, setRefreshInterval] = useState(10000);
+  const [refreshCount, setRefreshCount] = useState(0);
+  
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
     SetCheckedBoxItems((prev) => ({
@@ -86,6 +43,10 @@ const Main = () => {
     setTimeRange(selectedTimeRange.value)
   }
 
+  const handleIntervalTimeChange = (selectedInterval) => {
+    setRefreshInterval(selectedInterval);
+    console.log(selectedInterval);
+  }
 
   // 클러스터 정보 불러오는 블록
   const [clusterNamespaces, setClusterNamespaces] = useState({});
@@ -96,13 +57,14 @@ const Main = () => {
   const getNodeStyle = (type) => {
     switch (type) {
       case "Service":
-        return {type: "star"};
-      case "Unknown":
-        return {type: "diamond"};
+        return {img: "/Service-Logo.png"};
+      // case "Unknown":
+      //   return {img: "/Service"};
       default:
-        return {type: "circle"};
+        return {img: "/Pod-Logo.png"};
     }
   }
+
 
   useEffect(() => {
     axios.get("/clusters")
@@ -124,7 +86,7 @@ const Main = () => {
       }, {});
 
       setClusterNamespaces(formattedData);
-      console.log("Formatted & Sorted:", formattedData);
+      // console.log("Formatted & Sorted:", formattedData);
     })
     .catch((error) => {
       console.error("Error fetching clusters:", error);
@@ -133,11 +95,17 @@ const Main = () => {
     const request_body = {
       timerange: timeRange, // 예: "5m" 또는 "30m"
       namespaces: selectedNamespaces.map(({ clusterName, namespace }) => ({
-        clustername: clusterName,
+        cluster: clusterName,
         namespace: namespace,
       })),
     };
-    console.log("log request body:", request_body)
+
+    // const request_body = selectedNamespaces.map(({ clusterName, namespace }) => ({
+    //   clustername: clusterName,
+    //   namespace: namespace,
+    // }));
+    
+    // console.log("log request body:", request_body)
     if(selectedNamespaces.length === 0){
       setLogEntries({});
       setTopologyData({ nodes: [], edges: [] })
@@ -146,7 +114,10 @@ const Main = () => {
       axios.post("/api/logs" , request_body)
         .then((response) => {
           setLogEntries(response.data);
-          console.log(checkedBoxItems.cluster);
+          if(response.data === null){
+            setLogEntries({});
+            setTopologyData({ nodes: [], edges: [] })
+          }
           const combo = [];
           // Only Namespace ComboBox
           if(checkedBoxItems.namespace && !checkedBoxItems.cluster)
@@ -250,6 +221,7 @@ const Main = () => {
               node.push({
                 id: srcName,
                 label: srcName,
+                type: "image",
                 ip: srcIP,
                 name: srcName,
                 kind: srcType,
@@ -265,6 +237,7 @@ const Main = () => {
               node.push({
                 id: dstName,
                 label: dstName,
+                type: "image",
                 ip: dstIP,
                 name: dstName,
                 kind: dstType,
@@ -291,7 +264,7 @@ const Main = () => {
               path: path,
               responseCode: responseCode,
               timeStamp: timeStamp,
-              label: srcPort+"→"+dstPort,
+              // label: srcPort+"→"+dstPort,
             })
           })
           const graphData = {
@@ -300,14 +273,14 @@ const Main = () => {
             combos: combo
           }
           setTopologyData(graphData)
-          console.log("graphData: ", graphData);
+          // console.log("graphData: ", graphData);
         })
         .catch((error) => {
           console.error("Error fetching clusters:", error);
         });
       }
-      console.log("Time", timeRange);
   }, [checkedBoxItems , selectedNamespaces , timeRange]);
+
   
   const renderTopologyComponent = () => {
     const {cluster, namespace} = checkedBoxItems;
@@ -322,9 +295,9 @@ const Main = () => {
     if (!cluster && namespace) { // Only Namespace ComboBox
       return <ClusterTopology3 data={topologyData} />;
     }
-    if (cluster && namespace) return <ClusterTopology3 data={data} />; // Custer + Namespace ComboBox
+    if (cluster && namespace) return <ClusterTopology3 data={topologyData} />; // Custer + Namespace ComboBox
   }
-
+  
 
   return (
     <div className="main-container">
@@ -341,22 +314,22 @@ const Main = () => {
           clusterInfo={clusterNamespaces}
           onRefresh={handleRefresh}
           onTimeRangeChange={hanldeTimeRangeChange}
+          onIntervalTimeChange={handleIntervalTimeChange}
+          checkedBoxItems={checkedBoxItems}
+          onCheckboxChange={handleCheckboxChange}
         />
         </div>
         <div className="content" style={{ height: `${100 - tableHeight}vh`, position: "relative" }}>
         {/* <Topology2 data={topologyData} width={1000} height={600} selectedNamespace={selectedNamespace} selectedLog={logData}/> */}
-        {renderTopologyComponent()}
-        {/* {selectedNamespaces.length === 0 ? "Select Namespace" : renderTopologyComponent()} */}
-        </div>
-        <div>
-          <GraphBottom checkedBoxItems={checkedBoxItems} onCheckboxChange={handleCheckboxChange}/>
+        {/* {renderTopologyComponent()} */}
+        {selectedNamespaces.length === 0 ? <div>Select Namespace</div> : renderTopologyComponent()}
         </div>
 
         {/* ✅ 리사이즈 핸들 */}
         {/* <div className="resize-handle" onMouseDown={startResizing}></div> */}
 
         {/* ✅ 아래쪽 테이블 (높이 조절 가능) */}
-        <div className="table-container" style={{ height: `${tableHeight}vh` }}>
+        <div className="table-container" style={{ height: `${tableHeight}vh`}}>
           <Log logEntries={logEntries}/>
         </div>
       </div>

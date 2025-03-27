@@ -1,0 +1,61 @@
+.edge-popup {
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #999;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    border-radius: 8px;
+    min-width: 220px;
+    font-size: 14px;
+  }
+  
+  .edge-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #666;
+  }
+  
+  .edge-popup-arrow {
+    display: block;
+    margin: 8px auto;
+  }
+  
+  .edge-popup-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    border: 1px solid #ccc;
+  }
+  
+  .edge-popup-table td {
+    padding: 4px 6px;
+    vertical-align: top;
+    color: #333;
+    border: 1px solid #ccc;
+  }
+  
+  .edge-popup-table td:first-child {
+    font-weight: bold;
+    width: 80px;
+    color: #666;
+    text-align: left;
+  }
+  
+  .edge-popup-response {
+    color: red;
+    font-style: italic;
+  }
+  
+  .edge-popup-divider {
+    border-top: 1px solid #ddd;
+    margin: 10px 0;
+  }
+  

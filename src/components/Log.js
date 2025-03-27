@@ -13,36 +13,46 @@ const Log = ({ logEntries}) => {
     <div className="table-wrapper">
       <Table className="custom-table">
         <thead>
+          <tr style={{border: "1px solid #ccc"}}>
+            <th rowSpan="2" style={{border: "1px solid #ccc" , verticalAlign: "middle"}}>TimeStamp</th>
+            <th colSpan="4" style={{border: "1px solid #ccc"}}>Source</th>
+            <th colSpan="4" style={{border: "1px solid #ccc"}}>Destination</th>
+            <th colSpan="2" style={{border: "1px solid #ccc"}}>API Logs</th>
+          </tr>
           <tr>
-            <th>Source Cluster</th>
-            <th className="source">Source Pod<em>namespace</em></th>
-            <th>Source IP:Port</th>
-            <th>Destination Cluster</th>
-            <th className="destination">Destination Pod<em>namespace</em></th>
-            <th>Destination IP:PORT</th>
-            <th className="source">Method<em>path</em></th>
-            <th>Response Code</th>
-            <th>Timestamp</th>
+            {/* <th style={{border: "1px solid #ccc"}}>Timestamp</th> */}
+            <th style={{borderLeft: "1px solid #ccc"}}>Cluster</th>
+            <th>Type</th>
+            <th className="source">Name<em>namespace</em></th>
+            <th>IP:Port</th>
+            <th style={{borderLeft: "1px solid #ccc"}}>Cluster</th>
+            <th>Type</th>
+            <th className="destination">Name<em>namespace</em></th>
+            <th>IP:PORT</th>
+            <th style={{borderLeft: "1px solid #ccc"}}>Method<em>path</em></th>
+            <th style={{borderRight: "1px solid #ccc"}}>Response Code</th>
           </tr>
         </thead>
         <tbody>
           {logEntries && Array.isArray(logEntries) ? (
             logEntries.map((entry, index) => (
               <tr key={index} className="hover-effect" onMouseEnter={() => handleMouseEnter(entry)}>
-                <td><span className="source">{entry.srcCluster ? entry.srcCluster : "-"}</span></td>
-                <td><span className="source">{entry.srcName}<em>{entry.srcNamespace}</em></span></td>
-                <td><span className="source">{entry.srcIP}:{entry.srcPort}</span></td>
-                <td><span className="source">{entry.dstCluster ? entry.dstCluster : "-"}</span></td>
-                <td><span className="destination">{entry.dstName}<em>{entry.dstNamespace}</em></span></td>
-                <td><span className="destination">{entry.dstIP}:{entry.dstPort}</span></td>
-                <td><span className="source">{entry.method}<em>{entry.path}</em></span></td>
-                <td><span className="verdict">{entry.responseCode}</span></td>
                 <td>{entry.timeStamp}</td>
+                <td><span>{entry.srcCluster ? entry.srcCluster : "-"}</span></td>
+                <td><span>{entry.srcType ? entry.srcType : "-"}</span></td>
+                <td><span>{entry.srcName}<em>{entry.srcNamespace}</em></span></td>
+                <td><span>{entry.srcIP}:{entry.srcPort}</span></td>
+                <td><span>{entry.dstCluster ? entry.dstCluster : "-"}</span></td>
+                <td><span>{entry.srcType ? entry.srcType : "-"}</span></td>
+                <td><span>{entry.dstName}<em>{entry.dstNamespace}</em></span></td>
+                <td><span>{entry.dstIP}:{entry.dstPort}</span></td>
+                <td><span>{entry.method}<em>{entry.path}</em></span></td>
+                <td><span>{entry.responseCode}</span></td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="7" style={{ textAlign: "center", padding: "10px" }}>
+              <td colSpan="11" style={{ textAlign: "center", padding: "10px", borderBottom: "1px solid #ccc"}}>
                 No logs available
               </td>
             </tr>

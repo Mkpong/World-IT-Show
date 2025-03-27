@@ -1,8 +1,9 @@
 // Header.js
 import React, { useEffect, useState } from "react";
 import Select, { components } from "react-select";
-import Help from "./Help";
 import "./Header.css";
+import { ArrowClockwise } from "react-bootstrap-icons";
+
 
 // ✔️ 선택된 항목에 체크 마크 커스텀
 const CustomOption = (props) => {
@@ -44,14 +45,37 @@ const CustomMenuList = (props) => {
   );
 };
 
+const CustomValueContainer = ({ children, ...props }) => {
+  const { selectProps } = props;
+
+  return (
+    <components.ValueContainer {...props}>
+      <div
+        style={{
+          width: "100%",
+          textAlign: "center",
+          opacity: 0.6,
+          fontStyle: "italic",
+          fontSize: "14px",
+        }}
+      >
+        {selectProps.placeholder}
+      </div>
+    </components.ValueContainer>
+  );
+};
+
+
 const Header = ({
   selectedNamespaces,
   onSelectNamespaceChange,
   clusterInfo,
   onRefresh,
   onTimeRangeChange,
+  onIntervalTimeChange,
+  checkedBoxItems,
+  onCheckboxChange
 }) => {
-  const [showHelp, setShowHelp] = useState(false);
 
   const groupedOptions = Object.entries(clusterInfo).map(
     ([clusterName, namespaceList]) => ({
@@ -59,8 +83,8 @@ const Header = ({
       options: namespaceList.map((ns) => ({
         clusterName,
         namespace: ns,
-        value: `${clusterName}/${ns}`,
-        label: ns,
+        value: `${clusterName}/${ns.name || ns}`,
+        label: ns.name || ns,
       })),
     })
   );
@@ -76,7 +100,15 @@ const Header = ({
     { value: "60m", label: "60m" },
   ];
 
+  const refreshIntervalOptions = [
+    { value: 0, label: "수동" },
+    { value: 10000, label: "10초" },
+    { value: 30000, label: "30초" },
+    { value: 60000, label: "1분" },
+  ];
+
   return (
+    <div>
     <div className="header-container">
       <div className="namespace-select">
         <Select
@@ -85,30 +117,25 @@ const Header = ({
           value={selectedNamespaces}
           onChange={onSelectNamespaceChange}
           placeholder="Select Namespace"
-          components={{ Option: CustomOption, MenuList: CustomMenuList }}
+          components={{ 
+            Option: CustomOption, 
+            MenuList: CustomMenuList,
+            MultiValue: () => null,
+            ValueContainer: CustomValueContainer
+          }}
           hideSelectedOptions={false}
           closeMenuOnSelect={false}
           selectedNamespaces={selectedNamespaces}
           onSelectNamespaceChange={onSelectNamespaceChange}
           allOptions={allOptions}
           styles={{
-            valueContainer: (base) => ({
-              ...base,
-              flexWrap: "wrap",
-              overflow: "visible",
-              maxHeight: "unset",
-              alignItems: "flex-start",
-            }),
             control: (base) => ({
               ...base,
-              minHeight: "auto",
-              minWidth: "600px",
+              // minHeight: "auto",
+              height: "38px",
+              minWidth: "500px",
               maxWidth: "100%",
               flexWrap: "wrap",
-            }),
-            multiValue: (base) => ({
-              ...base,
-              margin: "4px 4px",
             }),
           }}
         />
@@ -123,7 +150,7 @@ const Header = ({
           styles={{
             control: (base) => ({
               ...base,
-              height: "32px",
+              height: "38px",
               minHeight: "32px",
               fontSize: "12px",
             }),
@@ -144,20 +171,67 @@ const Header = ({
       </div>
 
       <div className="header-buttons">
-        <button className="refresh-button" onClick={onRefresh} title="새로고침">
-          🔄
-        </button>
-        <button
-          className="help-button"
-          onClick={() => setShowHelp(true)}
-          title="도움말"
+        <div
+          style={{
+            width: "100%",
+            fontSize: "16px",
+            boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "row",        // ✅ 수평 정렬
+            alignItems: "center",
+            gap: "16px",                 // ✅ 좌우 간격
+          }}
         >
-          ?
+          <label style={{ display: "flex", alignItems: "center" }}>
+            <input
+              type="checkbox"
+              value="cluster"
+              checked={checkedBoxItems.cluster}
+              onChange={onCheckboxChange}
+              style={{ marginRight: "5px" }}
+            />
+            Cluster Box
+          </label>
+
+          <label style={{ display: "flex", alignItems: "center" }}>
+            <input
+              type="checkbox"
+              value="namespace"
+              checked={checkedBoxItems.namespace}
+              onChange={onCheckboxChange}
+              style={{ marginRight: "5px" }}
+            />
+            Namespace Box
+          </label>
+        </div>
+        <button className="refresh-button" onClick={onRefresh} title="새로고침">
+          <ArrowClockwise size={30} />
         </button>
       </div>
 
-      {showHelp && <Help onClose={() => setShowHelp(false)} />}
+      
     </div>
+    {/* ✅ 선택된 네임스페이스를 아래에 표시 */}
+    {selectedNamespaces.length !== 0 &&
+    <div className="selected-tags">
+      {selectedNamespaces.map((ns) => (
+        <div key={ns.value} className="selected-tag">
+          {ns.clusterName}: {ns.label}
+          <span 
+            className="remove-btn"
+            onClick={() =>
+              onSelectNamespaceChange(
+                selectedNamespaces.filter((item) => item.value !== ns.value)
+              )
+            }
+          >
+            ×
+          </span>
+        </div>
+      ))}
+    </div>
+    }
+  </div>
   );
 };
 
