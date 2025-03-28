@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
 .table-wrapper {
     width: 100%;
     max-height: 60vh; /* 테이블 높이 제한 */
@@ -8,6 +10,7 @@
     font-family: "Arial", sans-serif;
     background-color: #ffffff;
     padding: 10px;
+    font-family: 'Inter', sans-serif;
   }
   
   /* ✅ 테이블 기본 스타일 */

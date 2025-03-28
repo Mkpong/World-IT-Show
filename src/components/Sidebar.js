@@ -38,8 +38,8 @@ const Sidebar = ({ isOpen }) => {
       icon: <PersonWorkspace size={iconSize} />,
     },
     {
-      label: "Policys",
-      key: "policys", // ✅ 중복 key 수정
+      label: "Policies",
+      key: "policies", // ✅ 중복 key 수정
       hasSubmenu: true,
       icon: <JournalText size={iconSize} />,
       submenus: [

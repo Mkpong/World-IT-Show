@@ -40,12 +40,12 @@ const Log = ({ logEntries}) => {
                 <td>{entry.timeStamp}</td>
                 <td><span>{entry.srcCluster ? entry.srcCluster : "-"}</span></td>
                 <td><span>{entry.srcType ? entry.srcType : "-"}</span></td>
-                <td><span>{entry.srcName}<em>{entry.srcNamespace}</em></span></td>
+                <td><span className="destination">{entry.srcName} <em>{entry.srcNamespace}</em></span></td>
                 <td><span>{entry.srcIP}:{entry.srcPort}</span></td>
                 <td><span>{entry.dstCluster ? entry.dstCluster : "-"}</span></td>
                 <td><span>{entry.srcType ? entry.srcType : "-"}</span></td>
-                <td><span>{entry.dstName}<em>{entry.dstNamespace}</em></span></td>
-                <td><span>{entry.dstIP}:{entry.dstPort}</span></td>
+                <td><span className="destination">{entry.dstName} <em>{entry.dstNamespace}</em></span></td>
+                <td><span >{entry.dstIP}:{entry.dstPort}</span></td>
                 <td><span>{entry.method}<em>{entry.path}</em></span></td>
                 <td><span>{entry.responseCode}</span></td>
               </tr>

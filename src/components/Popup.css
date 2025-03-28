@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
 .popup-container {
     position: absolute;
     top: 0;
@@ -12,6 +14,7 @@
     justify-content: center;
     transition: transform 0.3s ease-in-out;
     transform: translateX(0); /* ✅ 기본 상태 (오른쪽에 표시) */
+    font-family: 'Inter', sans-serif;
 }
 
 .popup-container.hidden {

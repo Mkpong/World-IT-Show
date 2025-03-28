@@ -67,6 +67,7 @@ const Main = () => {
 
 
   useEffect(() => {
+    console.log("create useEffect()")
     axios.get("/clusters")
     .then((response) => {
       // 1. 클러스터 이름 기준으로 정렬
