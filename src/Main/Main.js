@@ -6,7 +6,7 @@ import axios from 'axios';
 import ClusterTopology from "../components/ClusterTopology";
 import ClusterTopology3 from "../components/ClusterTopology3";
 import Header from "../components/Header";
-import { Send } from "react-bootstrap-icons";
+import { Diagram3 } from "react-bootstrap-icons";
 import { image } from "d3";
 
 const Main = () => {
@@ -18,9 +18,13 @@ const Main = () => {
     namespace: false,
   })
   const [selectedNamespaces, setSelectedNamespaces] = useState([]); // 상단바에서 선택한 네임스페이스 관리
+  const [selectedClusters, setSelectedClusters] = useState([]);
   const [timeRange, setTimeRange] = useState("1m")
   const [refreshInterval, setRefreshInterval] = useState(10000);
   const [refreshCount, setRefreshCount] = useState(0);
+  const [clusterNamespaces, setClusterNamespaces] = useState({});
+  const [logEntries , setLogEntries] = useState({});
+  const [topologyData, setTopologyData] = useState({ nodes: [], edges: [] });
   
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -31,8 +35,94 @@ const Main = () => {
   };
 
   const handleSelectNamespaceChange = (selectedOptions) => {
-    setSelectedNamespaces(selectedOptions || []);
+    const newNamespaces = selectedOptions || [];
+    setSelectedNamespaces(newNamespaces);
+  
+    let updatedClusters = [...selectedClusters];
+  
+    const selectedClusterNames = updatedClusters.map((c) => c.value);
+  
+    Object.entries(clusterNamespaces).forEach(([clusterName, namespaceList]) => {
+      const totalNamespaceNames = namespaceList.map((ns) =>
+        typeof ns === "string" ? ns : ns.name
+      );
+  
+      const selectedNamespaceNamesInCluster = newNamespaces
+        .filter((ns) => ns.clusterName === clusterName)
+        .map((ns) =>
+          typeof ns.namespace === "string" ? ns.namespace : ns.namespace.name
+        );
+  
+      const allSelected = totalNamespaceNames.every((ns) =>
+        selectedNamespaceNamesInCluster.includes(ns)
+      );
+  
+      const isAlreadySelected = selectedClusterNames.includes(clusterName);
+  
+      // ✅ 모든 네임스페이스 선택되었고 클러스터가 아직 없으면 → 추가
+      if (allSelected && !isAlreadySelected) {
+        updatedClusters.push({
+          label: clusterName,
+          value: clusterName,
+        });
+      }
+  
+      // ✅ 네임스페이스가 빠졌으면 → 클러스터 제거
+      if (!allSelected && isAlreadySelected) {
+        updatedClusters = updatedClusters.filter((c) => c.value !== clusterName);
+      }
+    });
+  
+    setSelectedClusters(updatedClusters);
   };
+  
+  
+
+  const handleSelectClusterChange = (selectedOptions) => {
+    const newSelectedClusters = selectedOptions || [];
+    setSelectedClusters(newSelectedClusters);
+  
+    // 클러스터 이름 리스트
+    const newClusterNames = newSelectedClusters.map((c) => c.value);
+    const prevClusterNames = selectedClusters.map((c) => c.value);
+  
+    // 추가/제거된 클러스터 판별
+    const addedClusters = newClusterNames.filter((c) => !prevClusterNames.includes(c));
+    const removedClusters = prevClusterNames.filter((c) => !newClusterNames.includes(c));
+  
+    let updatedNamespaces = [...selectedNamespaces];
+  
+    // ✅ 추가된 클러스터 → 네임스페이스 추가
+    addedClusters.forEach((clusterName) => {
+      const namespaces = clusterNamespaces[clusterName] || [];
+  
+      const formatted = namespaces.map((ns) => {
+        const name = typeof ns === "string" ? ns : ns.name;
+        return {
+          clusterName,
+          namespace: ns,
+          value: `${clusterName}/${name}`,
+          label: name,
+        };
+      });
+  
+      formatted.forEach((item) => {
+        if (!updatedNamespaces.some((ns) => ns.value === item.value)) {
+          updatedNamespaces.push(item);
+        }
+      });
+    });
+  
+    // ✅ 제거된 클러스터 → 네임스페이스 제거
+    removedClusters.forEach((clusterName) => {
+      updatedNamespaces = updatedNamespaces.filter(
+        (ns) => ns.clusterName !== clusterName
+      );
+    });
+  
+    setSelectedNamespaces(updatedNamespaces);
+  };
+  
   
   // 새로고침 버튼 함수
   const handleRefresh = () => {
@@ -48,10 +138,6 @@ const Main = () => {
     console.log(selectedInterval);
   }
 
-  // 클러스터 정보 불러오는 블록
-  const [clusterNamespaces, setClusterNamespaces] = useState({});
-  const [logEntries , setLogEntries] = useState({});
-  const [topologyData, setTopologyData] = useState({ nodes: [], edges: [] });
 
 
   const getNodeStyle = (type) => {
@@ -100,12 +186,9 @@ const Main = () => {
         namespace: namespace,
       })),
     };
+    console.log(request_body);
 
-    // const request_body = selectedNamespaces.map(({ clusterName, namespace }) => ({
-    //   clustername: clusterName,
-    //   namespace: namespace,
-    // }));
-    
+
     // console.log("log request body:", request_body)
     if(selectedNamespaces.length === 0){
       setLogEntries({});
@@ -114,6 +197,7 @@ const Main = () => {
     else{
       axios.post("/api/logs" , request_body)
         .then((response) => {
+          console.log(response.data);
           setLogEntries(response.data);
           if(response.data === null){
             setLogEntries({});
@@ -220,7 +304,7 @@ const Main = () => {
               seen.add(srcIP);
               const style = getNodeStyle(srcType);
               node.push({
-                id: srcName,
+                id: srcName+srcCluster,
                 label: srcName,
                 type: "image",
                 ip: srcIP,
@@ -236,7 +320,7 @@ const Main = () => {
               seen.add(dstIP);
               const style = getNodeStyle(dstType);
               node.push({
-                id: dstName,
+                id: dstName+dstCluster,
                 label: dstName,
                 type: "image",
                 ip: dstIP,
@@ -249,8 +333,8 @@ const Main = () => {
               });
             }
             edge.push({
-              source: srcName,
-              target: dstName,
+              source: srcName+srcCluster,
+              target: dstName+dstCluster,
               srcName: srcName,
               dstName: dstName,
               srcNamespace: srcNamespace,
@@ -312,6 +396,8 @@ const Main = () => {
         <Header
           selectedNamespaces={selectedNamespaces}
           onSelectNamespaceChange={handleSelectNamespaceChange}
+          selectedClusters={selectedClusters}
+          onSelectClusterChange={handleSelectClusterChange}
           clusterInfo={clusterNamespaces}
           onRefresh={handleRefresh}
           onTimeRangeChange={hanldeTimeRangeChange}

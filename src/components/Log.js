@@ -29,7 +29,7 @@ const Log = ({ logEntries}) => {
             <th>Type</th>
             <th className="destination">Name<em>namespace</em></th>
             <th>IP:PORT</th>
-            <th style={{borderLeft: "1px solid #ccc"}}>Method<em>path</em></th>
+            <th style={{borderLeft: "1px solid #ccc"}}>(Method) <em>path</em></th>
             <th style={{borderRight: "1px solid #ccc"}}>Response Code</th>
           </tr>
         </thead>
@@ -43,10 +43,10 @@ const Log = ({ logEntries}) => {
                 <td><span className="destination">{entry.srcName} <em>{entry.srcNamespace}</em></span></td>
                 <td><span>{entry.srcIP}:{entry.srcPort}</span></td>
                 <td><span>{entry.dstCluster ? entry.dstCluster : "-"}</span></td>
-                <td><span>{entry.srcType ? entry.srcType : "-"}</span></td>
+                <td><span>{entry.dstType ? entry.dstType : "-"}</span></td>
                 <td><span className="destination">{entry.dstName} <em>{entry.dstNamespace}</em></span></td>
                 <td><span >{entry.dstIP}:{entry.dstPort}</span></td>
-                <td><span>{entry.method}<em>{entry.path}</em></span></td>
+                <td><span>({entry.method}) <em>{entry.path}</em></span></td>
                 <td><span>{entry.responseCode}</span></td>
               </tr>
             ))

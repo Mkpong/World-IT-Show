@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Image } from "react-bootstrap";
 import { CaretDownFill, CaretRightFill } from "react-bootstrap-icons";
 import "./Sidebar.css";
-import { HouseFill } from "react-bootstrap-icons";
+import { HouseFill, Diagram3 } from "react-bootstrap-icons";
 import { FileEarmarkImage, PersonWorkspace, JournalText } from "react-bootstrap-icons";
 
 const Sidebar = ({ isOpen }) => {
@@ -24,6 +24,12 @@ const Sidebar = ({ isOpen }) => {
       key: "dashboard",
       hasSubmenu: false,
       icon: <HouseFill size={iconSize} />,
+    },
+    {
+      label: "Network Topology(L7)",
+      key: "network-topology-L7",
+      hasSubmenu: false,
+      icon: <Diagram3 size={iconSize} />,
     },
     {
       label: "Images",
