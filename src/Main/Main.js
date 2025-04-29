@@ -351,6 +351,14 @@ const Main = () => {
               timeStamp: timeStamp,
               // label: srcPort+"→"+dstPort,
             })
+            edge.push({
+              source: "istio-eastwestgateway"+"cluster2",
+              target: "istio-eastwestgateway-84c8c478bf-w849m"+"cluster2",
+            })
+            edge.push({
+              source: "istio-eastwestgateway"+"cluster1",
+              target: "istio-eastwestgateway-95db77675-bk5qt"+"cluster1",
+            })
           })
           const graphData = {
             nodes: node,
@@ -409,7 +417,7 @@ const Main = () => {
         <div className="content" style={{ height: `${100 - tableHeight}vh`, position: "relative" }}>
         {/* <Topology2 data={topologyData} width={1000} height={600} selectedNamespace={selectedNamespace} selectedLog={logData}/> */}
         {/* {renderTopologyComponent()} */}
-        {selectedNamespaces.length === 0 ? <div>Select Namespace</div> : renderTopologyComponent()}
+        {selectedNamespaces.length === 0 ? <div>Select Cluster or Namespace</div> : renderTopologyComponent()}
         </div>
 
         {/* ✅ 리사이즈 핸들 */}
